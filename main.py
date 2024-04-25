@@ -232,14 +232,18 @@ def main():
         #Buttons
         if RodButton.draw(surface) and clicks >= fishingRods.price:
             fishingRods.count += 1
+            clicks -= fishingRods.price
             fishingRods.price *= 1.25
+            fishingRods.price = int(fishingRods.price)
             Map.add_column(1)
-            clicks -= 10
+            
         if NetButton.draw(surface) and clicks >= fishingNets.price:
             fishingNets.count += 1
+            clicks -= fishingNets.price
             fishingNets.price *= 1.25
+            fishingNets.price = int(fishingNets.price)
             Map.add_column(2)
-            clicks -= 10
+            
 
         #One Sec Update
         if OneSecWait.update(clock):
