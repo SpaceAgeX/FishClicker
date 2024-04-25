@@ -6,10 +6,10 @@ import pygame
 class Text():
     
 
-    def __init__(self, color, pos):
+    def __init__(self, color, pos, size = 30):
         self.color = color
         self.pos = pos
-        self.font = pygame.font.SysFont('arial', 30)
+        self.font = pygame.font.SysFont('arial', size)
         self.text = self.font.render("", 1, pygame.Color(self.color))
 
     def renderText(self, text, screen, pos):

@@ -197,8 +197,11 @@ def main():
     fpsDisplay = text.Text((255, 255, 255), (0,0))
     ClickDisplay = text.Text((255, 255, 255), (WIDTH,0))
     FishPerSecondDisplay = text.Text((255, 255, 255), (WIDTH, 0))
-    RodButton = button.Button(WIDTH - (RodButtonImage.get_width()*2) - 5, 100, RodButtonImage, 2)
-    NetButton = button.Button(WIDTH - (NetButtonImage.get_width()*2) - 5,100 + RodButtonImage.get_height() + 40, NetButtonImage, 2)
+
+    RodButton = button.Button(WIDTH - (RodButtonImage.get_width()*2) - 5, 100, RodButtonImage, 1.2)
+    RodPriceDisplay = text.Text((255,255,255), (WIDTH, 0), 20)
+    NetButton = button.Button(WIDTH - (NetButtonImage.get_width()*2) - 5,100 + RodButtonImage.get_height() + 40, NetButtonImage, 1.2)
+    NetPriceDisplay = text.Text((255,255,255), (WIDTH, 0), 20)
 
     #Factory Managers
     fishingRods = factories.Factory(0, 1, 10)
@@ -209,7 +212,7 @@ def main():
 
     while running:
 
-        clock.tick(144)
+        clock.tick(60)
         surface.fill((0,0,0))
 
         Map.updateMap(cameraPos)
@@ -225,7 +228,8 @@ def main():
         fpsDisplay.renderText(str(int(clock.get_fps())),surface, (0,0))
         ClickDisplay.renderText(str(clicks)+" Fish Caught", surface, (WIDTH  - ClickDisplay.text.get_width()- 5, 0))
         FishPerSecondDisplay.renderText(str((fishingRods.rate*fishingRods.count)+(fishingNets.rate*fishingNets.count)) + " Fish per second", surface, (WIDTH - FishPerSecondDisplay.text.get_width()- 5,ClickDisplay.text.get_height()+2))
-        
+        RodPriceDisplay.renderText(str(fishingRods.price),surface, (WIDTH   - RodPriceDisplay.text.get_width()- 5, RodButton.rect.topleft[1]))
+        NetPriceDisplay.renderText(str(fishingNets.price),surface, (WIDTH   - NetPriceDisplay.text.get_width()- 5, NetButton.rect.topleft[1]))
         
 
         
@@ -253,9 +257,9 @@ def main():
         # Get Keys Input
         keys = pygame.key.get_pressed() 
         if keys[pygame.K_UP]:
-            cameraPos = (cameraPos[0]+1, cameraPos[1]-0.5)
+            cameraPos = (cameraPos[0]+4, cameraPos[1]-2)
         if keys[pygame.K_DOWN]:
-            cameraPos = (cameraPos[0]-1, cameraPos[1]+0.5)   
+            cameraPos = (cameraPos[0]-4, cameraPos[1]+2)   
 
         # Get Events
         for event in pygame.event.get():
