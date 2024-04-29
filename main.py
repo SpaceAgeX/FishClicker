@@ -3,7 +3,8 @@ import random
 import text
 import timeWait
 import button
-import factories
+import factoryManager
+import animSprite
 from pygame.locals import *
 
  
@@ -12,7 +13,7 @@ pygame.init()
 #Set Pygame Variables
 WIDTH = 1000
 HEIGHT = 600
-surface = pygame.display.set_mode((WIDTH, HEIGHT), DOUBLEBUF)    #set the display mode, window title and FPS clock
+surface = pygame.display.set_mode((WIDTH, HEIGHT), DOUBLEBUF)   
 pygame.display.set_caption('ISO')
 clock = pygame.time.Clock()
  
@@ -33,18 +34,32 @@ map_data = [
 #Load Images
  
 #Tiles
-WaterImage = pygame.image.load('Assets/Water.png').convert_alpha()  #load images
-SandImage = pygame.image.load('Assets/Sand.png').convert_alpha()
-SandLastImage = pygame.image.load('Assets/SandLast.png').convert_alpha()
+WaterSync = animSprite.AnimSync(0, 0)
+WaterImage = animSprite.AnimSprite(pygame.image.load('Assets/Water.png').convert_alpha(), 1)
+
+SandSync = animSprite.AnimSync(0, 0)
+SandImage = animSprite.AnimSprite(pygame.image.load('Assets/Sand.png').convert_alpha(), 1)
+
+WavesSync = animSprite.AnimSync(1, 4)
+SandLastImage = animSprite.AnimSprite(pygame.image.load('Assets/SandLast.png').convert_alpha(), 4)
+
+TileSyncs = [SandSync, WavesSync, WaterSync]
+tiles = [SandImage, SandLastImage ,WaterImage]
 
 #Decorations
 PalmTreeImage = pygame.image.load('Assets/PalmTree.png').convert_alpha()
 RockImage = pygame.image.load('Assets/Rock.png').convert_alpha()
 
+decorations = [None, PalmTreeImage, RockImage]
+decorationOffsets = [0, 48, 24]
+
 
 #Factories
 FishingRodImage = pygame.image.load('Assets/Rod.png').convert_alpha()
 FishingNetImage = pygame.image.load('Assets/Net.png').convert_alpha()
+
+factories = [None, FishingRodImage, FishingNetImage]
+factoryOffsets = [(0,0), (25, 50), (4, 20)]
 
 #Buttons
 RodButtonImage = pygame.image.load('Assets/RodButton.png').convert()
@@ -98,54 +113,44 @@ class Map():
         #Offsets
         offsetDecorations = 0
         offsetFactories = (0, 0)
-
+        tileFrame = 0
         #For Loop Through Array
         for row_nb, row in enumerate(map_data):
             for col_nb, tile in enumerate(row):
                 
-                #Draw Tiles
-                if tile == 0:
-                    tileImage = SandImage
-                elif tile == 1:
-                    tileImage = SandLastImage
-                elif tile == 2:
-                    tileImage = WaterImage
+                tileImage = tiles[tile]
+                tileFrame = TileSyncs[tile]
 
                 #Draw Decorations
-                if Map.decorations[row_nb][col_nb] == 1:
-                    decorationImage = PalmTreeImage
-                    offsetDecorations = 48
-                elif Map.decorations[row_nb][col_nb] == 2:
-                    decorationImage = RockImage
-                    offsetDecorations = 24
-                else:
-                    decorationImage = None
 
+                decorationImage = decorations[Map.decorations[row_nb][col_nb]]
+                offsetDecorations = decorationOffsets[Map.decorations[row_nb][col_nb]]
+
+                
                 #Draw Factories
-                if Map.factories[row_nb][col_nb] == 1:
-                    factoryImage = FishingRodImage
-                    offsetFactories = (25, 50)
-                elif Map.factories[row_nb][col_nb] == 2:
-                    factoryImage = FishingNetImage
-                    offsetFactories = (5, 20)
-                else:
-                    factoryImage = None
+                
+                factoryImage = factories[Map.factories[row_nb][col_nb]]
+                offsetFactories = factoryOffsets[Map.factories[row_nb][col_nb]]
+                
 
                 #Find Coordinates
                 cart_x = row_nb * TILEWIDTH_HALF
                 cart_y = col_nb * TILEHEIGHT_HALF  
                 #Get Center
                 centered_x = (surface.get_rect().centerx-20) + Map.toIso(cart_x, cart_y)[0]
-                centered_y = (surface.get_rect().centery-40)/2 + + Map.toIso(cart_x, cart_y)[1]
+                centered_y = (surface.get_rect().centery-40)/2 + Map.toIso(cart_x, cart_y)[1]
 
-                surface.blit(tileImage, (centered_x-cameraPos[0], centered_y-cameraPos[1]))
+                tileImage.draw((centered_x-cameraPos[0], centered_y-cameraPos[1]), surface, tileFrame.frame)
 
                 # Draw Decorations
                 if decorationImage != None:
                     surface.blit(decorationImage, (centered_x-cameraPos[0], centered_y-offsetDecorations-cameraPos[1]))
                 if factoryImage != None:
                     surface.blit(factoryImage, (centered_x-offsetFactories[0]-cameraPos[0], centered_y-offsetFactories[1]-cameraPos[1]))
-    
+
+                
+                WavesSync.update()
+
     #Add a new column with a factory
     def add_column(factory):
         #Loop through array
@@ -188,7 +193,7 @@ def main():
 
 
     # Game Variables 
-    clicks = 0
+    clicks = 1000
 
     cameraPos = (0,0)
 
@@ -204,8 +209,8 @@ def main():
     NetPriceDisplay = text.Text((255,255,255), (WIDTH, 0), 20)
 
     #Factory Managers
-    fishingRods = factories.Factory(0, 1, 10)
-    fishingNets = factories.Factory(0, 10, 100)
+    fishingRods = factoryManager.Factory(0, 1, 10)
+    fishingNets = factoryManager.Factory(0, 10, 100)
 
     #Timer Init
     OneSecWait = timeWait.TimeWait(pygame.time.get_ticks(), 1)
@@ -237,14 +242,14 @@ def main():
         if RodButton.draw(surface) and clicks >= fishingRods.price:
             fishingRods.count += 1
             clicks -= fishingRods.price
-            fishingRods.price *= 1.25
+            fishingRods.price *= 1.125
             fishingRods.price = int(fishingRods.price)
             Map.add_column(1)
             
         if NetButton.draw(surface) and clicks >= fishingNets.price:
             fishingNets.count += 1
             clicks -= fishingNets.price
-            fishingNets.price *= 1.25
+            fishingNets.price *= 1.125
             fishingNets.price = int(fishingNets.price)
             Map.add_column(2)
             
