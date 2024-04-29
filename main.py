@@ -1,7 +1,6 @@
 import pygame
 import random
 import text
-import timeWait
 import button
 import factoryManager
 import animSprite
@@ -57,13 +56,15 @@ decorationOffsets = [0, 48, 24]
 #Factories
 FishingRodImage = pygame.image.load('Assets/Rod.png').convert_alpha()
 FishingNetImage = pygame.image.load('Assets/Net.png').convert_alpha()
+FishingBoatImage = pygame.image.load('Assets/Boat.png').convert_alpha()
 
-factories = [None, FishingRodImage, FishingNetImage]
-factoryOffsets = [(0,0), (25, 50), (4, 20)]
+factories = [None, FishingRodImage, FishingNetImage, FishingBoatImage]
+factoryOffsets = [(0,0), (25, 50), (4, 20), (0, 30)]
 
 #Buttons
 RodButtonImage = pygame.image.load('Assets/RodButton.png').convert()
 NetButtonImage = pygame.image.load('Assets/NetButton.png').convert()
+BoatButtonImage = pygame.image.load('Assets/BoatButton.png').convert()
  
 # Tile Variables
 TILEWIDTH = 64  #holds the tile width and height
@@ -193,7 +194,7 @@ def main():
 
 
     # Game Variables 
-    clicks = 1000
+    clicks = 0
 
     cameraPos = (0,0)
 
@@ -205,15 +206,17 @@ def main():
 
     RodButton = button.Button(WIDTH - (RodButtonImage.get_width()*2) - 5, 100, RodButtonImage, 1.2)
     RodPriceDisplay = text.Text((255,255,255), (WIDTH, 0), 20)
-    NetButton = button.Button(WIDTH - (NetButtonImage.get_width()*2) - 5,100 + RodButtonImage.get_height() + 40, NetButtonImage, 1.2)
+    NetButton = button.Button(WIDTH - (NetButtonImage.get_width()*2) - 5, RodButton.rect.topleft[1] + RodButtonImage.get_height() + 40, NetButtonImage, 1.2)
     NetPriceDisplay = text.Text((255,255,255), (WIDTH, 0), 20)
+    BoatButton = button.Button(WIDTH - (BoatButtonImage.get_width()*2) - 5, NetButton.rect.topleft[1] + NetButtonImage.get_height() + 40, BoatButtonImage, 1.2)
+    BoatPriceDisplay = text.Text((255,255,255), (WIDTH, 0), 20)
 
     #Factory Managers
     fishingRods = factoryManager.Factory(0, 1, 10)
     fishingNets = factoryManager.Factory(0, 10, 100)
+    fishingBoats = factoryManager.Factory(0, 100, 1000)
 
-    #Timer Init
-    OneSecWait = timeWait.TimeWait(pygame.time.get_ticks(), 1)
+
 
     while running:
 
@@ -231,32 +234,38 @@ def main():
 
         #UI
         fpsDisplay.renderText(str(int(clock.get_fps())),surface, (0,0))
-        ClickDisplay.renderText(str(clicks)+" Fish Caught", surface, (WIDTH  - ClickDisplay.text.get_width()- 5, 0))
-        FishPerSecondDisplay.renderText(str((fishingRods.rate*fishingRods.count)+(fishingNets.rate*fishingNets.count)) + " Fish per second", surface, (WIDTH - FishPerSecondDisplay.text.get_width()- 5,ClickDisplay.text.get_height()+2))
-        RodPriceDisplay.renderText(str(fishingRods.price),surface, (WIDTH   - RodPriceDisplay.text.get_width()- 5, RodButton.rect.topleft[1]))
-        NetPriceDisplay.renderText(str(fishingNets.price),surface, (WIDTH   - NetPriceDisplay.text.get_width()- 5, NetButton.rect.topleft[1]))
-        
+        ClickDisplay.renderText(str(int(clicks))+" Fish Caught", surface, (WIDTH - ClickDisplay.text.get_width()- 5, 0))
+        FishPerSecondDisplay.renderText(str((fishingRods.rate*fishingRods.count)+(fishingNets.rate*fishingNets.count) + (fishingBoats.rate*fishingBoats.count)) + " Fish per second", surface, (WIDTH - FishPerSecondDisplay.text.get_width()- 5,ClickDisplay.text.get_height()+2))
+        RodPriceDisplay.renderText(str(fishingRods.price),surface, (WIDTH  - RodPriceDisplay.text.get_width()- 5, RodButton.rect.topleft[1]))
+        NetPriceDisplay.renderText(str(fishingNets.price),surface, (WIDTH  - NetPriceDisplay.text.get_width()- 5, NetButton.rect.topleft[1]))
+        BoatPriceDisplay.renderText(str(fishingBoats.price),surface, (WIDTH - BoatPriceDisplay.text.get_width() - 5, BoatButton.rect.topleft[1]))
 
         
         #Buttons
         if RodButton.draw(surface) and clicks >= fishingRods.price:
             fishingRods.count += 1
             clicks -= fishingRods.price
-            fishingRods.price *= 1.125
+            fishingRods.price *= 1.15
             fishingRods.price = int(fishingRods.price)
             Map.add_column(1)
             
         if NetButton.draw(surface) and clicks >= fishingNets.price:
             fishingNets.count += 1
             clicks -= fishingNets.price
-            fishingNets.price *= 1.125
+            fishingNets.price *= 1.15
             fishingNets.price = int(fishingNets.price)
             Map.add_column(2)
+
+        if BoatButton.draw(surface) and clicks >= fishingBoats.price:
+            fishingBoats.count += 1
+            clicks -= fishingBoats.price
+            fishingBoats.price *= 1.15
+            fishingBoats.price = int(fishingBoats.price)
+            Map.add_column(3)
             
 
-        #One Sec Update
-        if OneSecWait.update(clock):
-            clicks += (fishingRods.rate*fishingRods.count)+(fishingNets.rate*fishingNets.count)
+        clicks += ((fishingRods.rate*fishingRods.count)+(fishingNets.rate*fishingNets.count) + (fishingBoats.rate*fishingBoats.count))/60
+        
 
 
         # Get Keys Input
