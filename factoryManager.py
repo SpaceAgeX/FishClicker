@@ -6,3 +6,4 @@ class Factory():
 		self.count = count
 		self.rate = rate
 		self.price = price
+		self.initPrice = price

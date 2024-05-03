@@ -4,6 +4,7 @@ import text
 import button
 import factoryManager
 import animSprite
+import upgrades
 from pygame.locals import *
 
  
@@ -59,12 +60,18 @@ FishingNetImage = pygame.image.load('Assets/Net.png').convert_alpha()
 FishingBoatImage = pygame.image.load('Assets/Boat.png').convert_alpha()
 
 factories = [None, FishingRodImage, FishingNetImage, FishingBoatImage]
-factoryOffsets = [(0,0), (25, 50), (4, 20), (0, 30)]
+factoryOffsets = [(0,0), (57, 66), (36, 36), (0, 30)]
 
 #Buttons
 RodButtonImage = pygame.image.load('Assets/RodButton.png').convert()
 NetButtonImage = pygame.image.load('Assets/NetButton.png').convert()
 BoatButtonImage = pygame.image.load('Assets/BoatButton.png').convert()
+
+#Upgrade Buttons 
+ClickUpgradeImage = pygame.image.load('Assets/ClickX2Button.png').convert()
+RodUpgradeImage = pygame.image.load('Assets/RodX2Button.png').convert()
+NetUpgradeImage = pygame.image.load('Assets/NetX2Button.png').convert()
+BoatUpgradeImage = pygame.image.load('Assets/BoatX2Button.png').convert()
  
 # Tile Variables
 TILEWIDTH = 64  #holds the tile width and height
@@ -164,7 +171,7 @@ class Map():
                 Map.decorations[row_nb].append(0)
 
             #Set factories
-            if row_nb == 6:
+            if row_nb == 7:
                 Map.factories[row_nb].append(factory)
             else:
                 Map.factories[row_nb].append(0)
@@ -194,8 +201,7 @@ def main():
 
 
     # Game Variables 
-    clicks = 0
-
+    clicks = 100
     cameraPos = (0,0)
 
 
@@ -212,11 +218,14 @@ def main():
     BoatPriceDisplay = text.Text((255,255,255), (WIDTH, 0), 20)
 
     #Factory Managers
+    fishingClicks = factoryManager.Factory(0, 1, 10)
     fishingRods = factoryManager.Factory(0, 1, 10)
     fishingNets = factoryManager.Factory(0, 10, 100)
     fishingBoats = factoryManager.Factory(0, 100, 1000)
+    factoryManagers = [fishingClicks, fishingRods, fishingNets, fishingBoats]
 
-
+    #Upgrades Init
+    upgradesUI = upgrades.Upgrades((27, 80), (3, 3), [ClickUpgradeImage, RodUpgradeImage, NetUpgradeImage, BoatUpgradeImage])
 
     while running:
 
@@ -239,6 +248,17 @@ def main():
         RodPriceDisplay.renderText(str(fishingRods.price),surface, (WIDTH  - RodPriceDisplay.text.get_width()- 5, RodButton.rect.topleft[1]))
         NetPriceDisplay.renderText(str(fishingNets.price),surface, (WIDTH  - NetPriceDisplay.text.get_width()- 5, NetButton.rect.topleft[1]))
         BoatPriceDisplay.renderText(str(fishingBoats.price),surface, (WIDTH - BoatPriceDisplay.text.get_width() - 5, BoatButton.rect.topleft[1]))
+
+        #Upgrades 
+        currentUpgrades = upgradesUI.draw(surface)
+        
+        if currentUpgrades[0]: 
+            
+            if clicks >= upgrades.UpgradeData.upgradePriceMult[currentUpgrades[2]]*factoryManagers[currentUpgrades[1]].initPrice:
+                print("234tr")
+                factoryManagers[currentUpgrades[1]].rate *= upgrades.UpgradeData.upgradeValue[currentUpgrades[2]]
+                clicks -= upgrades.UpgradeData.upgradePriceMult[currentUpgrades[2]]*factoryManagers[currentUpgrades[1]].initPrice
+
 
         
         #Buttons
@@ -281,7 +301,7 @@ def main():
                 running = False
             if event.type == pygame.MOUSEBUTTONDOWN and clickRect.collidepoint(pygame.mouse.get_pos()):
                 if pygame.mouse.get_pressed()[0]:
-                    clicks += 1
+                    clicks += 1*fishingClicks.rate
             
 
 
