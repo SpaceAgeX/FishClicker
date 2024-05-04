@@ -16,3 +16,22 @@ class Text():
         font = pygame.font.SysFont('arial', 30)
         self.text = self.font.render(text, 1, pygame.Color(self.color))
         screen.blit(self.text, pos)
+
+
+class ToolTip():
+    
+
+    def __init__(self, area, size, color, text):
+        self.area = area
+        self.size = size
+        self.color = color
+        self.text = text
+    
+    def update(self, area, size, color, text):
+        self.area = area
+        self.size = size
+        self.color = color
+        self.text = text
+    
+    def draw(self, surface, pos):
+        pygame.draw.rect(surface, self.color, ((pos),(self.size)))

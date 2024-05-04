@@ -210,11 +210,11 @@ def main():
     ClickDisplay = text.Text((255, 255, 255), (WIDTH,0))
     FishPerSecondDisplay = text.Text((255, 255, 255), (WIDTH, 0))
 
-    RodButton = button.Button(WIDTH - (RodButtonImage.get_width()*2) - 5, 100, RodButtonImage, 1.2)
+    RodButton = button.Button(WIDTH - (RodButtonImage.get_width()*2) - 5, 100, RodButtonImage, 1.2, text.ToolTip(RodButtonImage.get_rect, (75, 25), (255,0,0), "This is a Tool Tip"))
     RodPriceDisplay = text.Text((255,255,255), (WIDTH, 0), 20)
-    NetButton = button.Button(WIDTH - (NetButtonImage.get_width()*2) - 5, RodButton.rect.topleft[1] + RodButtonImage.get_height() + 40, NetButtonImage, 1.2)
+    NetButton = button.Button(WIDTH - (NetButtonImage.get_width()*2) - 5, RodButton.rect.topleft[1] + RodButtonImage.get_height() + 40, NetButtonImage, 1.2, text.ToolTip(RodButtonImage.get_rect, (75, 25), (255,0,0), "This is a Tool Tip"))
     NetPriceDisplay = text.Text((255,255,255), (WIDTH, 0), 20)
-    BoatButton = button.Button(WIDTH - (BoatButtonImage.get_width()*2) - 5, NetButton.rect.topleft[1] + NetButtonImage.get_height() + 40, BoatButtonImage, 1.2)
+    BoatButton = button.Button(WIDTH - (BoatButtonImage.get_width()*2) - 5, NetButton.rect.topleft[1] + NetButtonImage.get_height() + 40, BoatButtonImage, 1.2, text.ToolTip(RodButtonImage.get_rect, (75, 25), (255,0,0), "This is a Tool Tip"))
     BoatPriceDisplay = text.Text((255,255,255), (WIDTH, 0), 20)
 
     #Factory Managers
@@ -223,6 +223,8 @@ def main():
     fishingNets = factoryManager.Factory(0, 10, 100)
     fishingBoats = factoryManager.Factory(0, 100, 1000)
     factoryManagers = [fishingClicks, fishingRods, fishingNets, fishingBoats]
+
+
 
     #Upgrades Init
     upgradesUI = upgrades.Upgrades((27, 80), (3, 3), [ClickUpgradeImage, RodUpgradeImage, NetUpgradeImage, BoatUpgradeImage])
@@ -249,13 +251,16 @@ def main():
         NetPriceDisplay.renderText(str(fishingNets.price),surface, (WIDTH  - NetPriceDisplay.text.get_width()- 5, NetButton.rect.topleft[1]))
         BoatPriceDisplay.renderText(str(fishingBoats.price),surface, (WIDTH - BoatPriceDisplay.text.get_width() - 5, BoatButton.rect.topleft[1]))
 
+
+
+
+
         #Upgrades 
         currentUpgrades = upgradesUI.draw(surface)
         
         if currentUpgrades[0]: 
             
             if clicks >= upgrades.UpgradeData.upgradePriceMult[currentUpgrades[2]]*factoryManagers[currentUpgrades[1]].initPrice:
-                print("234tr")
                 factoryManagers[currentUpgrades[1]].rate *= upgrades.UpgradeData.upgradeValue[currentUpgrades[2]]
                 clicks -= upgrades.UpgradeData.upgradePriceMult[currentUpgrades[2]]*factoryManagers[currentUpgrades[1]].initPrice
 
