@@ -72,7 +72,9 @@ ClickUpgradeImage = pygame.image.load('Assets/ClickX2Button.png').convert()
 RodUpgradeImage = pygame.image.load('Assets/RodX2Button.png').convert()
 NetUpgradeImage = pygame.image.load('Assets/NetX2Button.png').convert()
 BoatUpgradeImage = pygame.image.load('Assets/BoatX2Button.png').convert()
- 
+UpgradeLockImage = pygame.image.load('Assets/Lock.png').convert()
+
+
 # Tile Variables
 TILEWIDTH = 64  #holds the tile width and height
 TILEHEIGHT = 64
@@ -210,15 +212,15 @@ def main():
     ClickDisplay = text.Text((255, 255, 255), (WIDTH,0))
     FishPerSecondDisplay = text.Text((255, 255, 255), (WIDTH, 0))
 
-    RodButton = button.Button(WIDTH - (RodButtonImage.get_width()*2) - 5, 100, RodButtonImage, 1.2, text.ToolTip(RodButtonImage.get_rect, (75, 25), (255,0,0), "This is a Tool Tip"))
+    RodButton = button.Button(WIDTH - (RodButtonImage.get_width()*2) - 5, 100, RodButtonImage, 1.2, text.ToolTip(RodButtonImage.get_rect, (150, 75), (255,0,0), "This is a Tool Tip"))
     RodPriceDisplay = text.Text((255,255,255), (WIDTH, 0), 20)
-    NetButton = button.Button(WIDTH - (NetButtonImage.get_width()*2) - 5, RodButton.rect.topleft[1] + RodButtonImage.get_height() + 40, NetButtonImage, 1.2, text.ToolTip(RodButtonImage.get_rect, (75, 25), (255,0,0), "This is a Tool Tip"))
+    NetButton = button.Button(WIDTH - (NetButtonImage.get_width()*2) - 5, RodButton.rect.topleft[1] + RodButtonImage.get_height() + 40, NetButtonImage, 1.2, text.ToolTip(RodButtonImage.get_rect, (150, 75), (255,0,0), "This is a Tool Tip"))
     NetPriceDisplay = text.Text((255,255,255), (WIDTH, 0), 20)
-    BoatButton = button.Button(WIDTH - (BoatButtonImage.get_width()*2) - 5, NetButton.rect.topleft[1] + NetButtonImage.get_height() + 40, BoatButtonImage, 1.2, text.ToolTip(RodButtonImage.get_rect, (75, 25), (255,0,0), "This is a Tool Tip"))
+    BoatButton = button.Button(WIDTH - (BoatButtonImage.get_width()*2) - 5, NetButton.rect.topleft[1] + NetButtonImage.get_height() + 40, BoatButtonImage, 1.2, text.ToolTip(RodButtonImage.get_rect, (150, 75), (255,0,0), "This is a Tool Tip"))
     BoatPriceDisplay = text.Text((255,255,255), (WIDTH, 0), 20)
 
     #Factory Managers
-    fishingClicks = factoryManager.Factory(0, 1, 10)
+    fishingClicks = factoryManager.Factory(0, 1, 10, False)
     fishingRods = factoryManager.Factory(0, 1, 10)
     fishingNets = factoryManager.Factory(0, 10, 100)
     fishingBoats = factoryManager.Factory(0, 100, 1000)
@@ -228,7 +230,7 @@ def main():
 
     #Upgrades Init
     upgradesUI = upgrades.Upgrades((27, 80), (3, 3), [ClickUpgradeImage, RodUpgradeImage, NetUpgradeImage, BoatUpgradeImage])
-
+    upgradesLock = upgrades.Lock(UpgradeLockImage)
     while running:
 
         clock.tick(60)
@@ -246,7 +248,7 @@ def main():
         #UI
         fpsDisplay.renderText(str(int(clock.get_fps())),surface, (0,0))
         ClickDisplay.renderText(str(int(clicks))+" Fish Caught", surface, (WIDTH - ClickDisplay.text.get_width()- 5, 0))
-        FishPerSecondDisplay.renderText(str((fishingRods.rate*fishingRods.count)+(fishingNets.rate*fishingNets.count) + (fishingBoats.rate*fishingBoats.count)) + " Fish per second", surface, (WIDTH - FishPerSecondDisplay.text.get_width()- 5,ClickDisplay.text.get_height()+2))
+        FishPerSecondDisplay.renderText(str(int((fishingRods.rate*fishingRods.count)+(fishingNets.rate*fishingNets.count) + (fishingBoats.rate*fishingBoats.count))) + " Fish per second", surface, (WIDTH - FishPerSecondDisplay.text.get_width()- 5,ClickDisplay.text.get_height()+2))
         RodPriceDisplay.renderText(str(fishingRods.price),surface, (WIDTH  - RodPriceDisplay.text.get_width()- 5, RodButton.rect.topleft[1]))
         NetPriceDisplay.renderText(str(fishingNets.price),surface, (WIDTH  - NetPriceDisplay.text.get_width()- 5, NetButton.rect.topleft[1]))
         BoatPriceDisplay.renderText(str(fishingBoats.price),surface, (WIDTH - BoatPriceDisplay.text.get_width() - 5, BoatButton.rect.topleft[1]))
@@ -256,24 +258,49 @@ def main():
 
 
         #Upgrades 
-        currentUpgrades = upgradesUI.draw(surface)
         
-        if currentUpgrades[0]: 
+        if not upgradesLock.unlocked:
             
-            if clicks >= upgrades.UpgradeData.upgradePriceMult[currentUpgrades[2]]*factoryManagers[currentUpgrades[1]].initPrice:
-                factoryManagers[currentUpgrades[1]].rate *= upgrades.UpgradeData.upgradeValue[currentUpgrades[2]]
-                clicks -= upgrades.UpgradeData.upgradePriceMult[currentUpgrades[2]]*factoryManagers[currentUpgrades[1]].initPrice
+
+            if int(upgrades.UpgradeData.upgradesUnlock) <= int(clicks):
+                if upgradesLock.draw(surface, 0):
+                    clicks -= upgrades.UpgradeData.upgradesUnlock
+                    upgradesLock.unlocked = True
+            else:
+                upgradesLock.draw(surface, int(upgrades.UpgradeData.upgradesUnlock - clicks))
+            
+        else:
+            currentUpgrades = upgradesUI.draw(surface)
+            if currentUpgrades[0]:
+                if clicks >= upgrades.UpgradeData.upgradePriceMult[currentUpgrades[2]]*factoryManagers[currentUpgrades[1]].price:
+                    factoryManagers[currentUpgrades[1]].rate *= upgrades.UpgradeData.upgradeValue[currentUpgrades[2]]
+                    clicks -= upgrades.UpgradeData.upgradePriceMult[currentUpgrades[2]]*factoryManagers[currentUpgrades[1]].price
+                    upgrades.UpgradeData.upgradesUnlock = pow(upgrades.UpgradeData.upgradesUnlock, 1.1)
+
+                    if not factoryManagers[currentUpgrades[1]].duplicable:
+                        factoryManagers[currentUpgrades[1]].price *= 4
+                    for x in upgrades.UpgradeData.upgradePriceMult:
+                        x += 0.5
+                    upgradesUI.refresh()
+                    upgradesLock.unlocked = False
+                    print(upgradesLock.unlocked)
+                
+        
+            
+        
+            
+        
 
 
         
         #Buttons
-        if RodButton.draw(surface) and clicks >= fishingRods.price:
-            fishingRods.count += 1
-            clicks -= fishingRods.price
-            fishingRods.price *= 1.15
-            fishingRods.price = int(fishingRods.price)
-            Map.add_column(1)
-            
+        if BoatButton.draw(surface) and clicks >= fishingBoats.price:
+            fishingBoats.count += 1
+            clicks -= fishingBoats.price
+            fishingBoats.price *= 1.15
+            fishingBoats.price = int(fishingBoats.price)
+            Map.add_column(3)
+
         if NetButton.draw(surface) and clicks >= fishingNets.price:
             fishingNets.count += 1
             clicks -= fishingNets.price
@@ -281,12 +308,17 @@ def main():
             fishingNets.price = int(fishingNets.price)
             Map.add_column(2)
 
-        if BoatButton.draw(surface) and clicks >= fishingBoats.price:
-            fishingBoats.count += 1
-            clicks -= fishingBoats.price
-            fishingBoats.price *= 1.15
-            fishingBoats.price = int(fishingBoats.price)
-            Map.add_column(3)
+        
+            
+
+        if RodButton.draw(surface) and clicks >= fishingRods.price:
+            fishingRods.count += 1
+            clicks -= fishingRods.price
+            fishingRods.price *= 1.15
+            fishingRods.price = int(fishingRods.price)
+            Map.add_column(1)
+            
+        
             
 
         clicks += ((fishingRods.rate*fishingRods.count)+(fishingNets.rate*fishingNets.count) + (fishingBoats.rate*fishingBoats.count))/60

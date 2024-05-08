@@ -26,6 +26,7 @@ class ToolTip():
         self.size = size
         self.color = color
         self.text = text
+        self.textBox = Text((255, 255, 255), (0,0), 15)
     
     def update(self, area, size, color, text):
         self.area = area
@@ -34,4 +35,6 @@ class ToolTip():
         self.text = text
     
     def draw(self, surface, pos):
+
         pygame.draw.rect(surface, self.color, ((pos),(self.size)))
+        self.textBox.renderText(self.text, surface, (pos[0], pos[1]+5))
