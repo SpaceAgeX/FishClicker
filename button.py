@@ -3,7 +3,7 @@ import pygame
 #Button class draws button at pos, returns true when pressed
 
 class Button():
-	def __init__(self, x, y, image, scale, tooltip):
+	def __init__(self, x, y, image, scale, tooltip, factory):
 		width = image.get_width()
 		height = image.get_height()
 		self.image = pygame.transform.scale(image, (int(width * scale), int(height * scale)))
@@ -11,8 +11,9 @@ class Button():
 		self.rect.topleft = (x, y)
 		self.clicked = False
 		self.tooltip = tooltip
+		self.tooltip.update(factory)
 
-	def draw(self, surface):
+	def draw(self, surface, factory):
 		action = False
 		#get mouse position
 		pos = pygame.mouse.get_pos()
@@ -26,6 +27,7 @@ class Button():
 			if pygame.mouse.get_pressed()[0] == 1 and self.clicked == False:
 				self.clicked = True
 				action = True
+			self.tooltip.update(factory)	
 			self.tooltip.draw(surface, pos)
 
 		if pygame.mouse.get_pressed()[0] == 0:

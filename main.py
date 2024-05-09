@@ -5,14 +5,15 @@ import button
 import factoryManager
 import animSprite
 import upgrades
+import effects
 from pygame.locals import *
 
  
 pygame.init()
 
 #Set Pygame Variables
-WIDTH = 1000
-HEIGHT = 600
+WIDTH = 1100
+HEIGHT = 700
 surface = pygame.display.set_mode((WIDTH, HEIGHT), DOUBLEBUF)   
 pygame.display.set_caption('ISO')
 clock = pygame.time.Clock()
@@ -49,6 +50,9 @@ tiles = [SandImage, SandLastImage ,WaterImage]
 #Decorations
 PalmTreeImage = pygame.image.load('Assets/PalmTree.png').convert_alpha()
 RockImage = pygame.image.load('Assets/Rock.png').convert_alpha()
+
+#Effects
+ClickEffectImage = pygame.image.load('Assets/ClickEffect.png').convert_alpha()
 
 decorations = [None, PalmTreeImage, RockImage]
 decorationOffsets = [0, 48, 24]
@@ -190,53 +194,61 @@ def main():
     
 
     # Game View Port
-    clickRect = Rect(150, 80, WIDTH-300, HEIGHT-140)
+    clickRect = Rect(190, 80, WIDTH-400, HEIGHT-200)
 
     #UI Rects
-    UIRectL = Rect(0, 0, 150, HEIGHT-60)
+    UIRectL = Rect(0, 0, 190, HEIGHT-120)
     UIRectT = Rect(0, 0, WIDTH, 80)
-    UIRectR = Rect(WIDTH- 150, 0, 150, HEIGHT-60)
-    UIRectB = Rect(0, HEIGHT-60, WIDTH, 60)
+    UIRectR = Rect(WIDTH-210, 0, 210, HEIGHT-120)
+    UIRectB = Rect(0, HEIGHT-120, WIDTH, 120)
 
     # Init Map
     Map.updateMap((0,0))
 
 
     # Game Variables 
-    clicks = 100
+    clicks = 0
     cameraPos = (0,0)
 
 
-    # UI Init
-    fpsDisplay = text.Text((255, 255, 255), (0,0))
-    ClickDisplay = text.Text((255, 255, 255), (WIDTH,0))
-    FishPerSecondDisplay = text.Text((255, 255, 255), (WIDTH, 0))
-
-    RodButton = button.Button(WIDTH - (RodButtonImage.get_width()*2) - 5, 100, RodButtonImage, 1.2, text.ToolTip(RodButtonImage.get_rect, (150, 75), (255,0,0), "This is a Tool Tip"))
-    RodPriceDisplay = text.Text((255,255,255), (WIDTH, 0), 20)
-    NetButton = button.Button(WIDTH - (NetButtonImage.get_width()*2) - 5, RodButton.rect.topleft[1] + RodButtonImage.get_height() + 40, NetButtonImage, 1.2, text.ToolTip(RodButtonImage.get_rect, (150, 75), (255,0,0), "This is a Tool Tip"))
-    NetPriceDisplay = text.Text((255,255,255), (WIDTH, 0), 20)
-    BoatButton = button.Button(WIDTH - (BoatButtonImage.get_width()*2) - 5, NetButton.rect.topleft[1] + NetButtonImage.get_height() + 40, BoatButtonImage, 1.2, text.ToolTip(RodButtonImage.get_rect, (150, 75), (255,0,0), "This is a Tool Tip"))
-    BoatPriceDisplay = text.Text((255,255,255), (WIDTH, 0), 20)
-
-    #Factory Managers
+     #Factory Managers
     fishingClicks = factoryManager.Factory(0, 1, 10, False)
     fishingRods = factoryManager.Factory(0, 1, 10)
     fishingNets = factoryManager.Factory(0, 10, 100)
     fishingBoats = factoryManager.Factory(0, 100, 1000)
     factoryManagers = [fishingClicks, fishingRods, fishingNets, fishingBoats]
 
+    # UI Init
+    fpsDisplay = text.Text((255, 255, 255), (0,0))
+    ClickDisplay = text.Text((255, 255, 255), (WIDTH,0))
+    FishPerSecondDisplay = text.Text((255, 255, 255), (WIDTH, 0))
+
+
+    ClicksDisplay = text.Text((255,255,255), (WIDTH/2, 0), 20)
+
+    RodButton = button.Button(WIDTH - (RodButtonImage.get_width()) - 140, 100, RodButtonImage, 1.2, text.ToolTip(RodButtonImage.get_rect, (150, 75), (47, 77, 47), "This is a Tool Tip"), fishingRods)
+    RodPriceDisplay = text.Text((255,255,255), (WIDTH, 0), 20)
+    NetButton = button.Button(WIDTH - (NetButtonImage.get_width()) - 140, RodButton.rect.topleft[1] + RodButtonImage.get_height() + 40, NetButtonImage, 1.2, text.ToolTip(RodButtonImage.get_rect, (150, 75),  (47, 77, 47), "This is a Tool Tip"), fishingNets)
+    NetPriceDisplay = text.Text((255,255,255), (WIDTH, 0), 20)
+    BoatButton = button.Button(WIDTH - (BoatButtonImage.get_width()) - 140, NetButton.rect.topleft[1] + NetButtonImage.get_height() + 40, BoatButtonImage, 1.2, text.ToolTip(RodButtonImage.get_rect, (150, 75),  (47, 77, 47), "This is a Tool Tip"), fishingBoats)
+    BoatPriceDisplay = text.Text((255,255,255), (WIDTH, 0), 20)
+
+   
+
 
 
     #Upgrades Init
     upgradesUI = upgrades.Upgrades((27, 80), (3, 3), [ClickUpgradeImage, RodUpgradeImage, NetUpgradeImage, BoatUpgradeImage])
     upgradesLock = upgrades.Lock(UpgradeLockImage)
+
+    currentUpgrades = (False, 0, 0)
     while running:
 
         clock.tick(60)
         surface.fill((0,0,0))
 
         Map.updateMap(cameraPos)
+        effects.Click.draw(surface, pygame.mouse.get_pos(), ClickEffectImage)
 
         #Draw Frame
         pygame.draw.rect(surface, (20, 35 , 58), clickRect, 5)
@@ -252,7 +264,7 @@ def main():
         RodPriceDisplay.renderText(str(fishingRods.price),surface, (WIDTH  - RodPriceDisplay.text.get_width()- 5, RodButton.rect.topleft[1]))
         NetPriceDisplay.renderText(str(fishingNets.price),surface, (WIDTH  - NetPriceDisplay.text.get_width()- 5, NetButton.rect.topleft[1]))
         BoatPriceDisplay.renderText(str(fishingBoats.price),surface, (WIDTH - BoatPriceDisplay.text.get_width() - 5, BoatButton.rect.topleft[1]))
-
+        ClicksDisplay.renderText("Fish Per Click: " + str(int(fishingClicks.rate)),surface, ((WIDTH/2) - ClicksDisplay.text.get_width(), 5))
 
 
 
@@ -270,20 +282,21 @@ def main():
                 upgradesLock.draw(surface, int(upgrades.UpgradeData.upgradesUnlock - clicks))
             
         else:
-            currentUpgrades = upgradesUI.draw(surface)
+            currentUpgrades = currentUpgrades
             if currentUpgrades[0]:
                 if clicks >= upgrades.UpgradeData.upgradePriceMult[currentUpgrades[2]]*factoryManagers[currentUpgrades[1]].price:
                     factoryManagers[currentUpgrades[1]].rate *= upgrades.UpgradeData.upgradeValue[currentUpgrades[2]]
                     clicks -= upgrades.UpgradeData.upgradePriceMult[currentUpgrades[2]]*factoryManagers[currentUpgrades[1]].price
-                    upgrades.UpgradeData.upgradesUnlock = pow(upgrades.UpgradeData.upgradesUnlock, 1.1)
+                    upgrades.UpgradeData.upgradesUnlock = pow(upgrades.UpgradeData.upgradesUnlock, 1.05)
 
                     if not factoryManagers[currentUpgrades[1]].duplicable:
-                        factoryManagers[currentUpgrades[1]].price *= 4
+                        factoryManagers[currentUpgrades[1]].price *= 2
                     for x in upgrades.UpgradeData.upgradePriceMult:
                         x += 0.5
                     upgradesUI.refresh()
                     upgradesLock.unlocked = False
                     print(upgradesLock.unlocked)
+            currentUpgrades = upgradesUI.draw(surface, [fishingClicks.price,fishingRods.price,fishingNets.price,fishingBoats.price])
                 
         
             
@@ -294,14 +307,14 @@ def main():
 
         
         #Buttons
-        if BoatButton.draw(surface) and clicks >= fishingBoats.price:
+        if BoatButton.draw(surface, fishingBoats) and clicks >= fishingBoats.price:
             fishingBoats.count += 1
             clicks -= fishingBoats.price
             fishingBoats.price *= 1.15
             fishingBoats.price = int(fishingBoats.price)
             Map.add_column(3)
 
-        if NetButton.draw(surface) and clicks >= fishingNets.price:
+        if NetButton.draw(surface, fishingNets) and clicks >= fishingNets.price:
             fishingNets.count += 1
             clicks -= fishingNets.price
             fishingNets.price *= 1.15
@@ -311,7 +324,7 @@ def main():
         
             
 
-        if RodButton.draw(surface) and clicks >= fishingRods.price:
+        if RodButton.draw(surface, fishingRods) and clicks >= fishingRods.price:
             fishingRods.count += 1
             clicks -= fishingRods.price
             fishingRods.price *= 1.15
@@ -338,6 +351,7 @@ def main():
                 running = False
             if event.type == pygame.MOUSEBUTTONDOWN and clickRect.collidepoint(pygame.mouse.get_pos()):
                 if pygame.mouse.get_pressed()[0]:
+                    effects.Click.add(ClickEffectImage)
                     clicks += 1*fishingClicks.rate
             
 
